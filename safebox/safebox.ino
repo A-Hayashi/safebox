@@ -6,10 +6,86 @@
 
 PaSoRi pasori;
 
+
 #define DOOR_SW   A3
 #define POWER_SW  A2
 #define OTHER_RY  A4
 #define LOCK_RY   A5
+
+bool isIdBlank(void)
+{
+  byte ExpectedIDm[8];
+  readId(ExpectedIDm);
+
+  int i;
+  for (i = 0; i < sizeof(ExpectedIDm); i++) {
+    if (ExpectedIDm[i] != 0xFF) {
+      break;
+    }
+  }
+
+  if (i == 8) {
+    Serial.println("ID is Blank");
+    return true;
+  } else {
+    Serial.println("ID is not Blank");
+    return false;
+  }
+}
+
+bool isIdMatch(byte* IDm)
+{
+  byte ExpectedIDm[8];
+  readId(ExpectedIDm);
+
+  int i;
+  for (i = 0; i < sizeof(ExpectedIDm); i++) {
+    if (ExpectedIDm[i] != IDm[i]) {
+      break;
+    }
+  }
+
+  if (i == 8) {
+    Serial.println("ID match");
+    return true;
+  } else {
+    Serial.println("ID not match");
+    return false;
+  }
+}
+
+void readId(byte* IDm)
+{
+  EEPROM_LOADER(0, IDm, 8);
+
+  Serial.print("read ");
+  for (int i = 0; i < 8; i++) {
+    Serial.print(IDm[i], HEX);
+    Serial.print(":");
+  }
+  Serial.println("");
+}
+
+
+void writeId(byte* IDm)
+{
+  EEPROM_SAVER(0, IDm, 8);
+
+  Serial.print("write ");
+  for (int i = 0; i < 8; i++) {
+    Serial.print(IDm[i], HEX);
+    Serial.print(":");
+  }
+  Serial.println("");
+}
+
+void clearId(void)
+{
+  byte IDm[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+  Serial.println("clear ID");
+  writeId(IDm);
+}
 
 void InitDoorSw(void)
 {
@@ -82,7 +158,7 @@ void Lock(bool lock)
       Serial.println("DoorUnlock");
     }
   }
-  
+
   if (lock == true) {
     digitalWrite(LOCK_RY, HIGH);
   } else {
@@ -96,19 +172,14 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println("Start");
+  //  clearId();
+  //  while (true);
+
   InitLock();
   Lock(true);
   InitDoorSw();
   InitPowerSw();
 
-  byte IDm[8];
-  EEPROM_LOADER(0, IDm, sizeof(IDm));
-
-  for (int i = 0; i < 8; i++) {
-    Serial.print(IDm[i], HEX);
-  }
-  Serial.println("");
-  
   byte rcode = pasori.begin(); // initialize PaSoRi
   if (rcode != 0) {
     Serial.print("PaSoRi initialization failed! : rcode = ");
@@ -135,19 +206,30 @@ void loop()
   if (rcode) {
     delay(500);
   } else {
-    Lock(false);
+
     // Polling successful
     Serial.print("FeliCa detected. IDm=");
-    byte IDm[8];
+    byte IDm[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     for (i = 0; i < 8; i++) {
       IDm[i] = pasori.getIDm()[i];
       Serial.print(pasori.getIDm()[i], HEX);
-      Serial.print(" ");
+      Serial.print(":");
     }
-    EEPROM_SAVER(0, IDm, sizeof(IDm));
     Serial.println("");
-
     readEdy();
+
+    if (isIdBlank()) {
+      writeId(IDm);
+    } else {
+      if (isIdMatch(IDm)) {
+        Lock(false);
+        clearId();
+      } else {
+        Lock(true);
+      }
+    }
+
+
     delay(3000);
   }
 }
