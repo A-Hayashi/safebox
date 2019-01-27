@@ -11,6 +11,33 @@ PaSoRi pasori;
 #define POWER_SW  A2
 #define OTHER_RY  A4
 #define LOCK_RY   A5
+#define USE_LED   A1
+
+void InitUseLed(void)
+{
+  pinMode(USE_LED, OUTPUT);
+  Serial.println("InitUseLed");
+}
+
+void UseLedOn(bool on)
+{
+  static byte on_old = 0xFF;
+
+  if (on != on_old) {
+    if (on == true) {
+      Serial.println("USE LED ON");
+    } else {
+      Serial.println("USE LED OFF");
+    }
+  }
+  on_old = on;
+
+  if (on == true) {
+    digitalWrite(USE_LED, LOW);
+  } else {
+    digitalWrite(USE_LED, HIGH);
+  }
+}
 
 bool isIdBlank(void)
 {
@@ -77,6 +104,7 @@ void writeId(byte* IDm)
     Serial.print(":");
   }
   Serial.println("");
+  UseLedOn(true);
 }
 
 void clearId(void)
@@ -85,6 +113,7 @@ void clearId(void)
 
   Serial.println("clear ID");
   writeId(IDm);
+  UseLedOn(false);
 }
 
 void InitDoorSw(void)
@@ -105,7 +134,7 @@ void InitLock(void)
   Serial.println("InitLock");
 }
 
-bool ReadPowerSw(void)
+bool isPowerOn(void)
 {
   bool sw = digitalRead(POWER_SW);
   static byte sw_old = 0xff;
@@ -127,7 +156,7 @@ bool ReadPowerSw(void)
 }
 
 
-bool ReadDoorSw(void)
+bool isDoorClose(void)
 {
   bool sw = digitalRead(DOOR_SW);
   static byte sw_old = 0xff;
@@ -179,6 +208,7 @@ void setup()
   Lock(true);
   InitDoorSw();
   InitPowerSw();
+  InitUseLed();
 
   byte rcode = pasori.begin(); // initialize PaSoRi
   if (rcode != 0) {
@@ -195,13 +225,14 @@ void loop()
 
   rcode = pasori.poll(POLLING_ANY);
 
-  if (ReadPowerSw()) {
+  if (isPowerOn()) {
     Lock(false);
   } else {
     Lock(true);
   }
 
-  ReadDoorSw();
+  isPowerOn();
+  isDoorClose();
 
   if (rcode) {
     delay(500);
@@ -222,13 +253,14 @@ void loop()
       writeId(IDm);
     } else {
       if (isIdMatch(IDm)) {
-        Lock(false);
-        clearId();
+        if (isDoorClose() == true ) {
+          Lock(false);
+          clearId();
+        }
       } else {
         Lock(true);
       }
     }
-
 
     delay(3000);
   }
