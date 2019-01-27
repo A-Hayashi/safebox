@@ -1,3 +1,5 @@
+#include <EEPROM.h>
+
 #include "Spi.h"
 #include "Usb.h"
 #include "PaSoRi.h"
@@ -99,6 +101,14 @@ void setup()
   InitDoorSw();
   InitPowerSw();
 
+  byte IDm[8];
+  EEPROM_LOADER(0, IDm, sizeof(IDm));
+
+  for (int i = 0; i < 8; i++) {
+    Serial.print(IDm[i], HEX);
+  }
+  Serial.println("");
+  
   byte rcode = pasori.begin(); // initialize PaSoRi
   if (rcode != 0) {
     Serial.print("PaSoRi initialization failed! : rcode = ");
@@ -128,10 +138,13 @@ void loop()
     Lock(false);
     // Polling successful
     Serial.print("FeliCa detected. IDm=");
+    byte IDm[8];
     for (i = 0; i < 8; i++) {
+      IDm[i] = pasori.getIDm()[i];
       Serial.print(pasori.getIDm()[i], HEX);
       Serial.print(" ");
     }
+    EEPROM_SAVER(0, IDm, sizeof(IDm));
     Serial.println("");
 
     readEdy();
@@ -150,4 +163,17 @@ void readEdy()
   }
 }
 
+
+
+void EEPROM_SAVER(int address, byte *val, int size) {
+  for (int i = 0 ; i < size ; i++) {
+    EEPROM[address + i] = val[i];
+  }
+}
+
+void EEPROM_LOADER(int address, byte *val, int size) {
+  for (int i = 0 ; i < size ; i++) {
+    val[i] = EEPROM[address + i];
+  }
+}
 
