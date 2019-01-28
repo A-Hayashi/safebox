@@ -3,9 +3,24 @@
 #include "Spi.h"
 #include "Usb.h"
 #include "PaSoRi.h"
+#include "AltSoftSerial.h"
+#include "DFPlayer_Mini_Mp3.h"
 
 PaSoRi pasori;
 
+void InitMp3(void)
+{
+  static AltSoftSerial mySerial;
+  mySerial.begin (9600);
+  mp3_set_serial (mySerial);  //set softwareSerial for DFPlayer-mini mp3 module
+  delay(100);  //wait 1ms for mp3 module to set volume
+  mp3_set_volume (15);
+}
+
+void PlayMp3(byte num)
+{
+  mp3_play (num);
+}
 
 #define DOOR_SW   A3
 #define POWER_SW  A2
@@ -201,14 +216,15 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println("Start");
-  //  clearId();
-  //  while (true);
 
   InitLock();
   Lock(true);
+  //  Lock(false);
+  //  while (true);
   InitDoorSw();
   InitPowerSw();
   InitUseLed();
+  InitMp3();
 
   byte rcode = pasori.begin(); // initialize PaSoRi
   if (rcode != 0) {
@@ -259,6 +275,7 @@ void loop()
         }
       } else {
         Lock(true);
+        PlayMp3(1);
       }
     }
 
