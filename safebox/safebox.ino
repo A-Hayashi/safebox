@@ -115,10 +115,9 @@ void lock_check()
   }
 }
 
-
-
 void Felica_id_check()
 {
+  //動作確認済
   InitPowerRy();
   InitPowerLed();
   PowerRy(1);
@@ -151,7 +150,7 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println("Start");
-  Felica_check();
+  Felica_id_check();
 
 }
 
