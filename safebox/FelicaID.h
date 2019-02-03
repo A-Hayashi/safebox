@@ -1,3 +1,6 @@
+#ifndef FALICA_ID
+#define FALICA_ID
+
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "Spi.h"
@@ -11,3 +14,5 @@ bool isIdMatch(byte* IDm);
 void writeId(byte* IDm);
 void clearId(void);
 byte detectId(byte *IDm);
+
+#endif

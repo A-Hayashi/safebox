@@ -1,3 +1,6 @@
+#ifndef SW
+#define SW
+
 #include "Arduino.h"
 
 #define DOOR_SW   6   //動作確認済
@@ -7,3 +10,5 @@ void InitDoorSw(void);
 bool isDoorClose(void);
 void InitInnerSw(void);
 bool isInnerPushed(void);
+
+#endif
