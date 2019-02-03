@@ -42,10 +42,6 @@
 #include "Arduino.h"
 #include "AltSoftSerial.h"
 
-uint8_t send_buf[10] = {
-	0x7E, 0xFF, 06, 00, 00, 00, 00, 00, 00, 0xEF};
-uint8_t recv_buf[10];
-
 //* void(*send_func)() = NULL;
 //* HardwareSerial *hserial = NULL;
 //* SoftwareSerial *sserial = NULL;
