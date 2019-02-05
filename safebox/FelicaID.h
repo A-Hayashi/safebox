@@ -2,10 +2,12 @@
 #define FALICA_ID
 
 #include <Arduino.h>
+#include <Wire.h>
 #include <EEPROM.h>
-#include "Spi.h"
-#include "Usb.h"
-#include "PaSoRi.h"
+#include "PN532_I2C.h"
+#include "PN532.h"
+#include "PN532_debug.h"
+
 
 
 void FelicaInit();

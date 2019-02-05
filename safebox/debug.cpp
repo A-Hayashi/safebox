@@ -55,9 +55,10 @@ void Felica_check()
   InitMp3();
 
   while (1) {
-    byte rcode = detectId(NULL);
-    Serial.println(rcode);
-    if (rcode == 0) {
+    byte IDm[8];
+    byte ret = detectId(IDm);
+    Serial.println(ret);
+    if (ret == 1) {
       PlayMp3(ID_REGISTER);
       delay(3000);
     }
@@ -123,9 +124,9 @@ void Felica_id_check()
   InitMp3();
   while (1) {
     byte IDm[8];
-    byte rcode = detectId(IDm);
-    Serial.println(rcode);
-    if (rcode == 0) {
+    byte ret = detectId(IDm);
+    Serial.println(ret);
+    if (ret == 1) {
       if (isIdBlank()) {
         PlayMp3(ID_REGISTER);
         writeId(IDm);

@@ -1,24 +1,35 @@
 #include "FelicaID.h"
 
-static PaSoRi pasori;
+static PN532_I2C pn532i2c(Wire);
+static PN532 nfc(pn532i2c);
 
 static void readId(byte* IDm);
 static void EEPROM_SAVER(int address, byte *val, int size);
 static void EEPROM_LOADER(int address, byte *val, int size);
-static void readEdy(PaSoRi& pasori);
 
 void FelicaInit()
 {
   Serial.println("FelicaInit");
-  delay(500);
-  byte rcode = pasori.begin(); // initialize PaSoRi
-  
-  if (rcode != 0) {
-    Serial.print("PaSoRi initialization failed! : rcode = ");
-    Serial.println(rcode, HEX);
-    while (1); // stop
+
+  nfc.begin();
+
+  uint32_t versiondata = nfc.getFirmwareVersion();
+  if (!versiondata)
+  {
+    Serial.print("Didn't find PN53x board");
+    while (1) {delay(10);};      // halt
   }
-  
+
+  // Got ok data, print it out!
+  Serial.print("Found chip PN5"); Serial.println((versiondata >> 24) & 0xFF, HEX);
+  Serial.print("Firmware ver. "); Serial.print((versiondata >> 16) & 0xFF, DEC);
+  Serial.print('.'); Serial.println((versiondata >> 8) & 0xFF, DEC);
+
+  // Set the max number of retry attempts to read from a card
+  // This prevents us from waiting forever for a card, which is
+  // the default behaviour of the PN532.
+  nfc.setPassiveActivationRetries(0xFF);
+  nfc.SAMConfig();
 }
 
 bool isIdBlank(void)
@@ -94,8 +105,6 @@ void clearId(void)
   writeId(IDm);
 }
 
-
-
 static void EEPROM_SAVER(int address, byte *val, int size) {
   for (int i = 0 ; i < size ; i++) {
     EEPROM[address + i] = val[i];
@@ -110,39 +119,17 @@ static void EEPROM_LOADER(int address, byte *val, int size) {
 
 byte detectId(byte *IDm)
 {
-  byte rcode;
-  byte IDm_tmp[8];
-  pasori.task(); // call this at every loop
-  rcode = pasori.poll(POLLING_ANY);
+  uint8_t ret;
+  uint16_t systemCode = 0xFFFF;
+  uint8_t requestCode = 0x01;       // System Code request
+  uint8_t pmm[8];
+  uint16_t systemCodeResponse;
 
-  if (rcode) {
-    delay(500);
-  } else {
-    // Polling successful
-    Serial.print("FeliCa detected. IDm=");
-    memset(IDm, 0, 8);
-    for (int i = 0; i < 8; i++) {
-      IDm_tmp[i] = pasori.getIDm()[i];
-      Serial.print(IDm_tmp[i], HEX);
-      Serial.print(":");
-    }
-    if (IDm != NULL) {
-      memcpy(IDm, IDm_tmp, sizeof(IDm_tmp));
-    }
-    Serial.println("");
-    readEdy(pasori);
-  }
-  return rcode;
+  // Wait for an FeliCa type cards.
+  // When one is found, some basic information such as IDm, PMm, and System Code are retrieved.
+  Serial.print("Waiting for an FeliCa card...  ");
+  ret = nfc.felica_Polling(systemCode, requestCode, IDm, pmm, &systemCodeResponse, 500);
+	
+  return ret;
 }
 
-
-static void readEdy(PaSoRi& pasori)
-{
-  byte b[16];
-  for (int i = 0; i < 32; i++) {
-    int rcode = pasori.read_without_encryption02(0x170F, i, b);
-    if (rcode) {
-      break;
-    }
-  }
-}
