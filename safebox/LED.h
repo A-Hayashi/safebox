@@ -3,8 +3,8 @@
 
 #include <Arduino.h>
 
-#define POWER_LED   2
-#define INNER_LED   3
+#define POWER_LED   3
+#define INNER_LED   2
 
 void InitPowerLed(void);
 void PowerLedOn(bool on);

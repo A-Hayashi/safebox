@@ -8,10 +8,14 @@ void led_check()
   while (1) {
     PowerLedOn(1);
     InnerLedOn(1);
-    delay(1000);
-    PowerLedOn(0);
+    delay(500);
     InnerLedOn(0);
-    delay(1000);
+    delay(500);
+    PowerLedOn(0);
+    InnerLedOn(1);
+    delay(500);
+    InnerLedOn(0);
+    delay(500);
   }
 }
 
@@ -142,3 +146,18 @@ void Felica_id_check()
     }
   }
 }
+
+
+void eink_check()
+{
+  pinMode(A2, OUTPUT);
+  while (1) {
+    delay(10000);
+    Serial.println("USED");
+    digitalWrite(A2, LOW);
+    delay(10000);
+    Serial.println("NOT USED");
+    digitalWrite(A2, HIGH);
+  }
+}
+

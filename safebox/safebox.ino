@@ -9,17 +9,14 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println("Start");
-  
-  Felica_id_check();
-//  pinMode(A2, OUTPUT);
-//  while (1) {
-//    delay(10000);
-//    Serial.println("USED");
-//    digitalWrite(A2, LOW);
-//    delay(10000);
-//    Serial.println("NOT USED");
-//    digitalWrite(A2, HIGH);
-//  }
+  //led_check();
+  //mp3_check();
+  //power_latch_check();
+  //Felica_check();
+  //Felica_id_check();
+  //lock_check();
+  //sw_check();
+  //eink_check();
 }
 
 void loop()

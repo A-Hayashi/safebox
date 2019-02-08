@@ -15,5 +15,5 @@ void Felica_check();
 void sw_check();
 void lock_check();
 void Felica_id_check();
-
+void eink_check();
 #endif
