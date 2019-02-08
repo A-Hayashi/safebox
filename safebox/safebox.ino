@@ -5,6 +5,8 @@
 #include "RY.h"
 #include "debug.h"
 
+#include <MsTimer2.h>
+
 void setup()
 {
   Serial.begin(9600);
@@ -17,54 +19,64 @@ void setup()
   //lock_check();
   //sw_check();
   //eink_check();
+  //Felica_id_clear();
+  InitPowerRy();
+  InitPowerLed();
+  PowerRy(1);
+  PowerLedOn(1);
+
+  FelicaInit();
+  InitMp3();
+  InitLock();
+  eink_init();
+
+  //  MsTimer2::set(30000, powerOff); // 500msの期間
+  //  MsTimer2::start();
 }
+
+void powerOff()
+{
+  PowerRy(0);
+  MsTimer2::stop();
+}
+
 
 void loop()
 {
-  //  byte rcode, i;
-  //  pasori.task(); // call this at every loop
-  //
-  //  rcode = pasori.poll(POLLING_ANY);
-  //
-  //  if (isPowerOn()) {
-  //    Lock(false);
-  //  } else {
-  //    Lock(true);
+  byte IDm[8];
+
+  //  if (isDoorClose()) {
+  //    delay(1000);
+  //    Lock(1);
   //  }
-  //
-  //  isPowerOn();
-  //  isDoorClose();
-  //
-  //  if (rcode) {
-  //    delay(500);
-  //  } else {
-  //
-  //    // Polling successful
-  //    Serial.print("FeliCa detected. IDm=");
-  //    byte IDm[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  //    for (i = 0; i < 8; i++) {
-  //      IDm[i] = pasori.getIDm()[i];
-  //      Serial.print(pasori.getIDm()[i], HEX);
-  //      Serial.print(":");
-  //    }
-  //    Serial.println("");
-  //    readEdy();
-  //
-  //    if (isIdBlank()) {
-  //      writeId(IDm);
-  //    } else {
-  //      if (isIdMatch(IDm)) {
-  //        if (isDoorClose() == true ) {
-  //          Lock(false);
-  //          clearId();
-  //        }
-  //      } else {
-  //        Lock(true);
-  //        PlayMp3(1);
-  //      }
-  //    }
-  //
-  //    delay(3000);
-  //  }
+
+  if (isIdBlank()) {
+    eink_disp(CAN_USE);
+    Lock(0);
+  } else {
+    eink_disp(USING);
+  }
+
+  byte ret = detectId(IDm);
+  Serial.println(ret);
+
+  if (ret == 1) {
+    if (isIdBlank()) {
+      PlayMp3(ID_REGISTER);
+      writeId(IDm);
+      delay(1000);
+      Lock(1);
+    } else {
+      if (isIdMatch(IDm)) {
+        PlayMp3(ID_MATCH);
+        clearId();
+        delay(1000);
+        Lock(0);
+      } else {
+        PlayMp3(ID_UNMATCH);
+        delay(1000);
+      }
+    }
+  }
 }
 

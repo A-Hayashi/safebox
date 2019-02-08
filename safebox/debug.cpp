@@ -116,6 +116,24 @@ void lock_check()
   }
 }
 
+
+
+void Felica_id_clear()
+{
+  //動作確認済
+  InitPowerRy();
+  InitPowerLed();
+  PowerRy(1);
+  PowerLedOn(1);
+
+  FelicaInit();
+  InitMp3();
+  clearId();
+  while (1) {
+
+  }
+}
+
 void Felica_id_check()
 {
   //動作確認済
@@ -158,6 +176,23 @@ void eink_check()
     delay(10000);
     Serial.println("NOT USED");
     digitalWrite(A2, HIGH);
+  }
+}
+
+void eink_init()
+{
+  pinMode(A2, OUTPUT);
+}
+
+void eink_disp(byte disp)
+{
+  switch (disp) {
+    case USING:
+      digitalWrite(A2, LOW);
+      break;
+    case CAN_USE:
+      digitalWrite(A2, HIGH);
+      break;
   }
 }
 
