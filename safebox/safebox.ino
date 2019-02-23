@@ -45,11 +45,6 @@ void loop()
 {
   byte IDm[8];
 
-  //  if (isDoorClose()) {
-  //    delay(1000);
-  //    Lock(1);
-  //  }
-
   if (isIdBlank()) {
     eink_disp(CAN_USE);
     Lock(0);
@@ -65,13 +60,11 @@ void loop()
       PlayMp3(ID_REGISTER);
       writeId(IDm);
       delay(1000);
-      Lock(1);
     } else {
       if (isIdMatch(IDm)) {
         PlayMp3(ID_MATCH);
         clearId();
         delay(1000);
-        Lock(0);
       } else {
         PlayMp3(ID_UNMATCH);
         delay(1000);
